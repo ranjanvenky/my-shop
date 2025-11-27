@@ -8,23 +8,31 @@ const products = [
 
 export default function Home() {
 
-  function handleBuy(product) {
-    fetch('/api/create-payment', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        productId: product.id,
-      })
-    })
-      .then(res => res.json())
-      .then(data => {
-        console.log(data);
-        alert(data.message);
+  async function handleBuy(product: { id: number }) {
+    try {
+      const response = await fetch('/api/create-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: product.id,
+        }),
       });
+
+      const data = await response.json();
+
+      if (data.url) {
+        // ✅ Redirect user to Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        alert('Something went wrong. No payment URL returned.');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Payment failed. Please try again.');
+    }
   }
-  
 
   return (
     <div style={{ padding: '20px' }}>
@@ -36,7 +44,7 @@ export default function Home() {
           style={{
             border: '1px solid #ddd',
             padding: '16px',
-            maxWidth: '200px',
+            maxWidth: '220px',
             marginBottom: '12px'
           }}
         >

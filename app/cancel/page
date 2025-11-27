@@ -1,0 +1,8 @@
+export default function CancelPage() {
+  return (
+    <div style={{ padding: 20 }}>
+      <h1>Payment cancelled</h1>
+      <p>Your payment was cancelled — you can try again.</p>
+    </div>
+  );
+}
