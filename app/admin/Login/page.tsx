@@ -1,34 +1,22 @@
-// app/admin/login/page.tsx
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-export default function AdminLoginPage() {
-  async function login(formData: FormData) {
-    'use server';
+export default async function OrdersPage() {
+  const cookieStore = await cookies();
+  const isAdmin = cookieStore.get('admin');
 
-    const password = formData.get('password');
-
-    if (password === process.env.ADMIN_SECRET) {
-      redirect('/admin/orders');
-    }
-
-    redirect('/admin/login?error=1');
+  if (!isAdmin) {
+    redirect('/admin/login');
   }
 
   return (
-    <div style={{ padding: 40, maxWidth: 400 }}>
-      <h2>Admin Login</h2>
-
-      <form action={login}>
-        <input
-          type="password"
-          name="password"
-          placeholder="Admin password"
-          required
-          style={{ width: '100%', padding: 8, marginBottom: 12 }}
-        />
-
-        <button type="submit">Login</button>
+    <div style={{ padding: 20 }}>
+      <form action="/api/admin-logout" method="POST">
+        <button type="submit">Logout</button>
       </form>
+
+      <h1>Admin Orders</h1>
+      {/* orders list here */}
     </div>
   );
 }
