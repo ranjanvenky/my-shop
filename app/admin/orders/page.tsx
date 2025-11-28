@@ -1,12 +1,28 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 export default async function OrdersPage() {
+  // ✅ Auth check
   const cookieStore = await cookies();
   const isAdmin = cookieStore.get('admin');
 
   if (!isAdmin) {
     redirect('/admin/login');
+  }
+
+  // ✅ Fetch orders
+  const { data: orders, error } = await supabase
+    .from('orders')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return (
+      <div style={{ padding: 40 }}>
+        ❌ Failed to load orders
+      </div>
+    );
   }
 
   return (
@@ -15,17 +31,18 @@ export default async function OrdersPage() {
         minHeight: '100vh',
         background: '#f7f7f8',
         padding: '40px 20px',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
+        fontFamily: 'system-ui, sans-serif',
+color: '#000',
+
       }}
     >
       <div
         style={{
-          maxWidth: 900,
+          maxWidth: 1000,
           margin: '0 auto',
-          background: '#ffffff',
+          background: '#fff',
           padding: 24,
           borderRadius: 8,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
         }}
       >
         {/* HEADER */}
@@ -33,42 +50,77 @@ export default async function OrdersPage() {
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 24,
+            marginBottom: 20,
           }}
         >
-          <h1 style={{ margin: 0 }}>Admin Orders</h1>
+          <h1>Admin Orders</h1>
 
-          {/* LOGOUT */}
           <form action="/api/admin-logout" method="POST">
-            <button
-              type="submit"
-              style={{
-                padding: '8px 12px',
-                borderRadius: 6,
-                border: '1px solid #ddd',
-                background: '#f5f5f5',
-                cursor: 'pointer',
-              }}
-            >
-              Logout
-            </button>
+            <button>Logout</button>
           </form>
         </div>
 
-        {/* PLACEHOLDER FOR ORDERS */}
-        <div
-          style={{
-            padding: 40,
-            color: '#666',
-            border: '1px dashed #ddd',
-            borderRadius: 6,
-            textAlign: 'center',
-          }}
-        >
-          Orders will appear here ✅
-        </div>
+        {/* EMPTY STATE */}
+        {orders.length === 0 && (
+          <div style={{ color: '#666' }}>
+            No orders yet.
+          </div>
+        )}
+
+        {/* TABLE */}
+        {orders.length > 0 && (
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+            }}
+          >
+            <thead>
+              <tr style={{ background: '#f0f0f0' }}>
+                <th style={th}>Order ID</th>
+                <th style={th}>Product</th>
+                <th style={th}>Amount</th>
+                <th style={th}>Status</th>
+                <th style={th}>Date</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {orders.map((order) => (
+                <tr key={order.id}>
+<td style={td}>
+  <a
+    href={`/admin/orders/${order.id}`}
+    style={{ color: '#000', textDecoration: 'underline' }}
+  >
+    {order.id.slice(0, 8)}
+  </a>
+</td>
+                  <td style={td}>{order.product_name}</td>
+                  <td style={td}>
+                    ₹{(order.amount / 100).toFixed(2)}
+                  </td>
+                  <td style={td}>{order.status}</td>
+                  <td style={td}>
+                    {new Date(order.created_at).toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
 }
+
+const th = {
+  textAlign: 'left' as const,
+  padding: '10px',
+  borderBottom: '1px solid #ddd',
+};
+
+const td = {
+  padding: '10px',
+  borderBottom: '1px solid #eee',
+};
