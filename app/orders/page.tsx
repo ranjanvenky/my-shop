@@ -10,10 +10,8 @@ export default async function OrdersPage() {
   }
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1 style={{ color: '#000', fontSize: 24 }}>
-        Your Orders
-      </h1>
-    </div>
+    <h1 style={{ color: '#000' }}>
+      ✅ Your Orders
+    </h1>
   );
 }
